@@ -17,8 +17,17 @@ function TrackpadPage() {
     const { status, send } = useRemoteConnection();
     const { isTracking, handlers } = useTrackpadGesture(send, scrollMode);
 
-    const focusInput = () => {
-        hiddenInputRef.current?.focus();
+    const toggleKeyboard = () => {
+        const input = hiddenInputRef.current;
+        if (!input) return;
+        
+        // check actual focus state, not tracked state as in testing this didnt account for cases where keyboard was dismissed via back button
+        // this handles cases where keyboard was dismissed via back button
+        if (document.activeElement === input) {
+            input.blur();
+        } else {
+            input.focus();
+        }
     };
 
     const handleClick = (button: 'left' | 'right') => {
@@ -44,18 +53,8 @@ function TrackpadPage() {
         }
     };
 
-    const handleContainerClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
-            e.preventDefault();
-            focusInput();
-        }
-    };
-
     return (
-        <div
-            className="flex flex-col h-full overflow-hidden"
-            onClick={handleContainerClick}
-        >
+        <div className="flex flex-col h-full overflow-hidden">
             {/* Touch Surface */}
             <TouchArea
                 isTracking={isTracking}
@@ -70,13 +69,12 @@ function TrackpadPage() {
                 onToggleScroll={() => setScrollMode(!scrollMode)}
                 onLeftClick={() => handleClick('left')}
                 onRightClick={() => handleClick('right')}
-                onKeyboardToggle={focusInput}
+                onKeyboardToggle={toggleKeyboard}
             />
 
             {/* Extra Keys */}
             <ExtraKeys
                 sendKey={(k) => send({ type: 'key', key: k })}
-                onInputFocus={focusInput}
             />
 
             {/* Hidden Input for Mobile Keyboard */}
@@ -85,13 +83,9 @@ function TrackpadPage() {
                 className="opacity-0 absolute bottom-0 pointer-events-none h-0 w-0"
                 onKeyDown={handleKeyDown}
                 onChange={handleInput}
-                onBlur={() => {
-                    setTimeout(() => hiddenInputRef.current?.focus(), 10);
-                }}
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
-                autoFocus // Attempt autofocus on mount
             />
         </div>
     )

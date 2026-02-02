@@ -2,19 +2,21 @@ import React, { useState } from 'react';
 
 interface ExtraKeysProps {
     sendKey: (key: string) => void;
-    onInputFocus: () => void;
 }
 
 const KEYS = ['Esc', 'Tab', 'Ctrl', 'Alt', 'Shift', 'Meta', 'Home', 'End', 'PgUp', 'PgDn', 'Del'];
 
-export const ExtraKeys: React.FC<ExtraKeysProps> = ({ sendKey, onInputFocus }) => {
+export const ExtraKeys: React.FC<ExtraKeysProps> = ({ sendKey }) => {
     const [activeKey, setActiveKey] = useState<string | null>(null);
 
     const handlePointerDown = (e: React.PointerEvent, key: string) => {
         e.preventDefault();
+        // Blur any focused input to prevent keyboard from re-showing
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         setActiveKey(key);
         sendKey(key.toLowerCase());
-        onInputFocus();
     };
 
     const handlePointerUp = () => {
@@ -27,7 +29,7 @@ export const ExtraKeys: React.FC<ExtraKeysProps> = ({ sendKey, onInputFocus }) =
                 <button
                     key={k}
                     className={`
-                        min-w-[3.5rem] h-10 rounded-lg text-sm font-semibold
+                        min-w-14 h-10 rounded-lg text-sm font-semibold
                         flex items-center justify-center
                         transition-all duration-100
                         select-none touch-manipulation
