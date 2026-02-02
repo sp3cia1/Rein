@@ -24,9 +24,20 @@ function TrackpadPage() {
         const viewport = window.visualViewport;
         if (!viewport) return;
 
+        const originalHeight = viewport.height;
+
         const syncKeyboardState = () => {
-            const isVisible = viewport.height < window.innerHeight * 0.85;
-            keyboardOpenRef.current = isVisible;
+            if(viewport.height < originalHeight*0.85){
+                keyboardOpenRef.current = true;
+            }else{
+                keyboardOpenRef.current = false;
+                //because there are two ways to close the keyboard.
+                //1. by pressing back button
+                //2. by pressing "keyboard toggle" button
+                //input.blur(); is called for "keyboard toggle" button, but it was never called for back button.
+                //which caused bugs, this ensures that input.blur(); is called for back button as well 
+                hiddenInputRef.current?.blur();
+            }
         };
         
         viewport.addEventListener('resize', syncKeyboardState);
@@ -71,6 +82,7 @@ function TrackpadPage() {
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
+            
             <TouchArea
                 isTracking={isTracking}
                 scrollMode={scrollMode}
